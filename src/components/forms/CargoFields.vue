@@ -48,9 +48,9 @@ const measures = [
       <div class="form-grid">
         <FormField
           :id="`cargo-${i}-description`"
+          v-slot="a"
           label="Cargo description *"
           :error="errors[`cargo.${i}.description`]"
-          v-slot="a"
           ><input
             :id="`cargo-${i}-description`"
             :value="c.description"
@@ -60,9 +60,9 @@ const measures = [
             @input="update(i, 'description', $event)" /></FormField
         ><FormField
           :id="`cargo-${i}-quantity`"
+          v-slot="a"
           label="Quantity *"
           :error="errors[`cargo.${i}.quantity`]"
-          v-slot="a"
           ><input
             :id="`cargo-${i}-quantity`"
             type="number"
@@ -80,11 +80,11 @@ const measures = [
       <div class="measurement-grid">
         <FormField
           v-for="m in measures"
-          :key="m.key"
           :id="`cargo-${i}-${m.key}`"
+          :key="m.key"
+          v-slot="a"
           :label="m.label"
           :error="errors[`cargo.${i}.${m.key}`]"
-          v-slot="a"
           ><input
             :id="`cargo-${i}-${m.key}`"
             type="number"

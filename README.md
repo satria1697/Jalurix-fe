@@ -19,7 +19,7 @@ npm run type-check
 npm run build-only
 ```
 
-The `build` convenience script also runs checking and bundling. On newer Node versions, use the explicit commands above if npm-run-all does not print its child task results. The inherited Vite 5 toolchain reports deprecation and outdated Browserslist warnings; upgrading it is separate work. Node 20 LTS or newer is suitable; tests include a jsdom Storage setup for Node 26 compatibility.
+The `build` convenience script also runs checking and bundling. The build script runs these tasks sequentially so a failed check stops bundling. The inherited Vite 5 toolchain reports deprecation and outdated Browserslist warnings; upgrading it is separate work. Verified with Node 26; tests include a jsdom Storage setup for compatibility.
 
 ## Demo behavior
 
@@ -28,7 +28,7 @@ The `build` convenience script also runs checking and bundling. On newer Node ve
 - Requests support several cargo items, quantity and optional measurements per item, offline intake channels, preferred WIB schedules, handling instructions, and independent pickup/delivery locations.
 - `Use saved address` explicitly copies only that location's address. Later customer edits do not change request addresses.
 - New requests remain Draft and use the visibly labelled Demo staff identity. Dates persist in UTC and display as Asia/Jakarta (WIB).
-- Adding a customer from a new request temporarily saves the unfinished request in sessionStorage key `jalurix.request-editor.v1`. Creation or cancellation returns to that draft; successful request creation clears it.
+- Adding a customer from a new request temporarily saves the unfinished request in sessionStorage key `jalurix.request-editor.v1`. Creation, cancellation, or browser Back returns to that draft; successful request creation or confirmed discard clears it.
 - Navigation warns before discarding unsaved changes. Save failures keep the form open. Unreadable stored data is preserved and shows an error with retry; the app never silently resets it.
 
 Data is local to this browser and origin, without encryption, accounts, shared storage, or server backups. Use fictional data only. Multiple tabs editing concurrently are unsupported. Clearing site data removes local records; export/backup UI is not included.

@@ -26,12 +26,18 @@ const pickupLocal = ref(''),
   missing = ref(false),
   failure = ref(''),
   draftWarning = ref(''),
-  loadError = ref('')
+  loadError = ref(''),
+  restoredDraft = ref(false)
 const customer = computed(() => customers.items.find((c) => c.id === model.customerId))
 const snapshot = () =>
   JSON.stringify({ model, pickupLocal: pickupLocal.value, deliveryLocal: deliveryLocal.value })
 let initial = snapshot()
-const guard = useDirtyForm(() => ready.value && snapshot() !== initial)
+const guard = useDirtyForm(
+  () => ready.value && (restoredDraft.value || snapshot() !== initial),
+  () => {
+    if (!id) clearDraft()
+  }
+)
 async function load() {
   await Promise.all([customers.load(), requests.load()])
   loadError.value = customers.error || requests.error
@@ -47,10 +53,12 @@ async function load() {
       deliveryLocal.value = r.deliveryAt ? toWib(r.deliveryAt) : ''
     } else missing.value = true
   } else {
-    if (route.query.resume === '1') {
+    {
+      // A pending customer-creation draft also resumes on browser Back.
       try {
         const draft = readDraft()
         if (draft) {
+          restoredDraft.value = true
           Object.assign(model, draft.input)
           pickupLocal.value = draft.pickupLocal
           deliveryLocal.value = draft.deliveryLocal
@@ -154,7 +162,7 @@ async function save() {
         </div>
       </div>
       <div class="form-grid">
-        <FormField id="customerId" label="Customer *" :error="errors.customerId" v-slot="a"
+        <FormField id="customerId" v-slot="a" label="Customer *" :error="errors.customerId"
           ><select
             id="customerId"
             v-model="model.customerId"
@@ -213,9 +221,9 @@ async function save() {
       <div class="form-grid">
         <FormField
           id="pickupAt"
+          v-slot="a"
           label="Preferred pickup (WIB, optional)"
           :error="errors.pickupAt"
-          v-slot="a"
           ><input
             id="pickupAt"
             v-model="pickupLocal"
@@ -225,9 +233,9 @@ async function save() {
         /></FormField>
         <FormField
           id="deliveryAt"
+          v-slot="a"
           label="Preferred delivery (WIB, optional)"
           :error="errors.deliveryAt"
-          v-slot="a"
           ><input
             id="deliveryAt"
             v-model="deliveryLocal"

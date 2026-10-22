@@ -29,10 +29,10 @@ function update(key: keyof Location, event: Event) {
     >
     <FormField
       :id="`${prefix}-address`"
+      v-slot="a"
       class="span-full"
       label="Full address *"
       :error="errors[`${prefix}.address`]"
-      v-slot="a"
     >
       <textarea
         :id="`${prefix}-address`"
@@ -60,9 +60,9 @@ function update(key: keyof Location, event: Event) {
     /></FormField>
     <FormField
       :id="`${prefix}-latitude`"
+      v-slot="a"
       label="Latitude (optional)"
       :error="errors[`${prefix}.latitude`]"
-      v-slot="a"
       ><input
         :id="`${prefix}-latitude`"
         type="number"
@@ -77,9 +77,9 @@ function update(key: keyof Location, event: Event) {
     /></FormField>
     <FormField
       :id="`${prefix}-longitude`"
+      v-slot="a"
       label="Longitude (optional)"
       :error="errors[`${prefix}.longitude`]"
-      v-slot="a"
       ><input
         :id="`${prefix}-longitude`"
         type="number"

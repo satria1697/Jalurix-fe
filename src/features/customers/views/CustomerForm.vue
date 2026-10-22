@@ -97,7 +97,7 @@ async function save() {
         </div>
       </div>
       <div class="form-grid">
-        <FormField id="type" label="Customer type" :error="errors.type" v-slot="a"
+        <FormField id="type" v-slot="a" label="Customer type" :error="errors.type"
           ><select
             id="type"
             v-model="model.type"
@@ -110,9 +110,9 @@ async function save() {
         >
         <FormField
           id="name"
+          v-slot="a"
           :label="model.type === 'business' ? 'Business name *' : 'Full name *'"
           :error="errors.name"
-          v-slot="a"
           ><input
             id="name"
             v-model="model.name"
@@ -121,7 +121,7 @@ async function save() {
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
         /></FormField>
-        <FormField id="phone" label="Phone number *" :error="errors.phone" v-slot="a"
+        <FormField id="phone" v-slot="a" label="Phone number *" :error="errors.phone"
           ><input
             id="phone"
             v-model="model.phone"
@@ -131,7 +131,7 @@ async function save() {
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
         /></FormField>
-        <FormField id="email" label="Email address (optional)" :error="errors.email" v-slot="a"
+        <FormField id="email" v-slot="a" label="Email address (optional)" :error="errors.email"
           ><input
             id="email"
             v-model="model.email"
@@ -143,10 +143,10 @@ async function save() {
         /></FormField>
         <FormField
           id="address"
+          v-slot="a"
           class="span-full"
           label="Saved address (optional)"
           hint="A reference address only. Each transport request has its own pickup and delivery locations."
-          v-slot="a"
         >
           <textarea
             id="address"
