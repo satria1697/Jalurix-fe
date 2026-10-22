@@ -1,0 +1,45 @@
+name: Sync Common Folder
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - master
+
+jobs:
+  sync_folder:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the source repository
+      - name: Checkout Repo 1
+        uses: actions/checkout@v2
+
+      # Step 2: Copy the common folder to a temporary location
+      - name: Copy Form Builder and Common Folder
+        run: |
+          mkdir -p ../components
+          cp -r src/components ../components
+
+      # Step 3: Clone the destination repository
+      - name: Check out my other private repo
+        uses: actions/checkout@v2
+        with:
+          repository: satria1697/vue-one
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          path: child
+
+      # Step 4: Overwrite the common folder in Repo 2
+      - name: Overwrite Form Builder and Common Folders in Repo 2
+        run: |
+          cp -r ../components/. src/components
+
+      # Step 5: Commit and push changes to Repo 2
+      - name: Commit and Push Changes to Repo 2
+        run: |
+          cd child
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Sync files from master"
+          git push origin master
