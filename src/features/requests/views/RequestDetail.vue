@@ -5,9 +5,136 @@ import { useRequestStore } from '../store'
 import { useCustomerStore } from '../../customers/store'
 import { displayTime } from '../../../shared/time'
 import AppIcon from '../../../components/layout/AppIcon.vue'
-const route = useRoute(), requests = useRequestStore(), customers = useCustomerStore(), ready = ref(false)
-const request = computed(() => requests.items.find(r => r.id === route.params.id)), customer = computed(() => customers.items.find(c => c.id === request.value?.customerId))
-async function load() { await Promise.all([requests.load(), customers.load()]); ready.value = true }
+const route = useRoute(),
+  requests = useRequestStore(),
+  customers = useCustomerStore(),
+  ready = ref(false)
+const request = computed(() => requests.items.find((r) => r.id === route.params.id)),
+  customer = computed(() => customers.items.find((c) => c.id === request.value?.customerId))
+async function load() {
+  await Promise.all([requests.load(), customers.load()])
+  ready.value = true
+}
 onMounted(load)
 </script>
-<template><RouterLink to="/requests" class="back-link"><AppIcon name="back" :size="15" />Back to requests</RouterLink><div v-if="requests.error || customers.error" class="notice error" role="alert">{{ requests.error || customers.error }} <button class="button ghost" @click="load">Retry</button></div><div v-if="!ready" class="loading-state">Loading request…</div><template v-else-if="request"><div class="page-header"><div><div class="eyebrow">TRANSPORT REQUEST</div><h1>{{ request.reference }}</h1><p class="page-description">{{ customer?.name }} · Every detail in one place.</p></div><div class="header-actions"><span class="badge">Draft</span><RouterLink :to="`/requests/${request.id}/edit`" class="button secondary"><AppIcon name="edit" :size="15" />Edit request</RouterLink></div></div><p class="notice">This is a transport request, ready for the next conversation. Preferred times are not confirmed bookings.</p><div class="detail-grid"><section class="panel detail-card"><h2>Customer & intake</h2><dl><dt>CUSTOMER</dt><dd><RouterLink :to="`/customers/${request.customerId}`" class="inline-link">{{ customer?.name }}</RouterLink></dd><dt>INTAKE CHANNEL</dt><dd>{{ request.channel === 'whatsapp' ? 'WhatsApp' : request.channel === 'phone' ? 'Phone call' : 'Other offline channel' }}</dd><dt>INTAKE NOTES</dt><dd>{{ request.intakeNotes || 'No notes added' }}</dd></dl></section><section class="panel detail-card"><h2>Preferred schedule</h2><dl><dt>PICKUP · WIB</dt><dd>{{ displayTime(request.pickupAt) }}</dd><dt>DELIVERY · WIB</dt><dd>{{ displayTime(request.deliveryAt) }}</dd><dt>SPECIAL HANDLING</dt><dd>{{ request.handling || 'No special instructions' }}</dd></dl></section><section v-for="key in (['pickup', 'delivery'] as const)" :key="key" class="panel detail-card"><h2>{{ key === 'pickup' ? 'Pickup location' : 'Delivery location' }}</h2><dl><dt>TYPE & ADDRESS</dt><dd><span class="badge business">{{ request[key].type }}</span><br />{{ request[key].address }}</dd><dt>SITE CONTACT</dt><dd>{{ request[key].contactName || 'Not provided' }}<br v-if="request[key].contactPhone" />{{ request[key].contactPhone }}</dd><template v-if="request[key].latitude !== undefined"><dt>COORDINATES</dt><dd>{{ request[key].latitude }}, {{ request[key].longitude }}</dd></template><dt>ACCESS INSTRUCTIONS</dt><dd>{{ request[key].instructions || 'No access instructions' }}</dd></dl></section></div><section class="panel detail-card" style="margin-top:20px"><h2>Cargo <span class="count">{{ request.cargo.length }} items</span></h2><div v-for="(c, i) in request.cargo" :key="i" class="request-detail-cargo"><strong>{{ c.quantity }} × {{ c.description }}</strong><p v-if="c.length || c.width || c.height || c.weight">Per item: <span v-if="c.length">length {{ c.length }} cm · </span><span v-if="c.width">width {{ c.width }} cm · </span><span v-if="c.height">height {{ c.height }} cm · </span><span v-if="c.weight">weight {{ c.weight }} kg</span></p></div></section><section class="panel detail-card" style="margin-top:20px"><h2>Request record</h2><div class="form-grid"><dl><dt>ORIGINATING STAFF</dt><dd>{{ request.creator.name }} · Local demo identity</dd><dt>CREATED</dt><dd>{{ displayTime(request.createdAt) }}</dd></dl><dl><dt>STATUS</dt><dd>Draft</dd><dt>LAST UPDATED</dt><dd>{{ displayTime(request.updatedAt) }}</dd></dl></div></section></template><div v-else-if="!requests.error" class="empty-state"><h2>Request not found</h2><p>This request does not exist in this browser.</p></div></template>
+<template>
+  <RouterLink to="/requests" class="back-link"
+    ><AppIcon name="back" :size="15" />Back to requests</RouterLink
+  >
+  <div v-if="requests.error || customers.error" class="notice error" role="alert">
+    {{ requests.error || customers.error }}
+    <button class="button ghost" @click="load">Retry</button>
+  </div>
+  <div v-if="!ready" class="loading-state">Loading request…</div>
+  <template v-else-if="request"
+    ><div class="page-header">
+      <div>
+        <div class="eyebrow">TRANSPORT REQUEST</div>
+        <h1>{{ request.reference }}</h1>
+        <p class="page-description">{{ customer?.name }} · Every detail in one place.</p>
+      </div>
+      <div class="header-actions">
+        <span class="badge">Draft</span
+        ><RouterLink :to="`/requests/${request.id}/edit`" class="button secondary"
+          ><AppIcon name="edit" :size="15" />Edit request</RouterLink
+        >
+      </div>
+    </div>
+    <p class="notice">
+      This is a transport request, ready for the next conversation. Preferred times are not
+      confirmed bookings.
+    </p>
+    <div class="detail-grid">
+      <section class="panel detail-card">
+        <h2>Customer & intake</h2>
+        <dl>
+          <dt>CUSTOMER</dt>
+          <dd>
+            <RouterLink :to="`/customers/${request.customerId}`" class="inline-link">{{
+              customer?.name
+            }}</RouterLink>
+          </dd>
+          <dt>INTAKE CHANNEL</dt>
+          <dd>
+            {{
+              request.channel === 'whatsapp'
+                ? 'WhatsApp'
+                : request.channel === 'phone'
+                  ? 'Phone call'
+                  : 'Other offline channel'
+            }}
+          </dd>
+          <dt>INTAKE NOTES</dt>
+          <dd>{{ request.intakeNotes || 'No notes added' }}</dd>
+        </dl>
+      </section>
+      <section class="panel detail-card">
+        <h2>Preferred schedule</h2>
+        <dl>
+          <dt>PICKUP · WIB</dt>
+          <dd>{{ displayTime(request.pickupAt) }}</dd>
+          <dt>DELIVERY · WIB</dt>
+          <dd>{{ displayTime(request.deliveryAt) }}</dd>
+          <dt>SPECIAL HANDLING</dt>
+          <dd>{{ request.handling || 'No special instructions' }}</dd>
+        </dl>
+      </section>
+      <section v-for="key in ['pickup', 'delivery'] as const" :key="key" class="panel detail-card">
+        <h2>{{ key === 'pickup' ? 'Pickup location' : 'Delivery location' }}</h2>
+        <dl>
+          <dt>TYPE & ADDRESS</dt>
+          <dd>
+            <span class="badge business">{{ request[key].type }}</span
+            ><br />{{ request[key].address }}
+          </dd>
+          <dt>SITE CONTACT</dt>
+          <dd>
+            {{ request[key].contactName || 'Not provided'
+            }}<br v-if="request[key].contactPhone" />{{ request[key].contactPhone }}
+          </dd>
+          <template v-if="request[key].latitude !== undefined"
+            ><dt>COORDINATES</dt>
+            <dd>{{ request[key].latitude }}, {{ request[key].longitude }}</dd></template
+          >
+          <dt>ACCESS INSTRUCTIONS</dt>
+          <dd>{{ request[key].instructions || 'No access instructions' }}</dd>
+        </dl>
+      </section>
+    </div>
+    <section class="panel detail-card" style="margin-top: 20px">
+      <h2>
+        Cargo <span class="count">{{ request.cargo.length }} items</span>
+      </h2>
+      <div v-for="(c, i) in request.cargo" :key="i" class="request-detail-cargo">
+        <strong>{{ c.quantity }} × {{ c.description }}</strong>
+        <p v-if="c.length || c.width || c.height || c.weight">
+          Per item: <span v-if="c.length">length {{ c.length }} cm · </span
+          ><span v-if="c.width">width {{ c.width }} cm · </span
+          ><span v-if="c.height">height {{ c.height }} cm · </span
+          ><span v-if="c.weight">weight {{ c.weight }} kg</span>
+        </p>
+      </div>
+    </section>
+    <section class="panel detail-card" style="margin-top: 20px">
+      <h2>Request record</h2>
+      <div class="form-grid">
+        <dl>
+          <dt>ORIGINATING STAFF</dt>
+          <dd>{{ request.creator.name }} · Local demo identity</dd>
+          <dt>CREATED</dt>
+          <dd>{{ displayTime(request.createdAt) }}</dd>
+        </dl>
+        <dl>
+          <dt>STATUS</dt>
+          <dd>Draft</dd>
+          <dt>LAST UPDATED</dt>
+          <dd>{{ displayTime(request.updatedAt) }}</dd>
+        </dl>
+      </div>
+    </section></template
+  >
+  <div v-else-if="!requests.error" class="empty-state">
+    <h2>Request not found</h2>
+    <p>This request does not exist in this browser.</p>
+  </div>
+</template>

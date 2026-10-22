@@ -1,52 +1,42 @@
-# template
+# Jalurix frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+FR-01 customer and transport request intake, built with Vue 3, TypeScript, Pinia, and Tailwind. The Forest Chocolate theme uses forest green, chocolate, cream, and moss.
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
-
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
-
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
+## Run
 
 ```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
+npm ci
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Open the local URL printed by Vite. The root opens Transport requests; Customers is in the sidebar. Existing component examples remain under `/story-book/button`.
+
+## Verify
 
 ```sh
-npm run build
+npm run test:unit -- --run
+npm run type-check
+npm run build-only
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+The `build` convenience script also runs checking and bundling. On newer Node versions, use the explicit commands above if npm-run-all does not print its child task results. The inherited Vite 5 toolchain reports deprecation and outdated Browserslist warnings; upgrading it is separate work. Node 20 LTS or newer is suitable; tests include a jsdom Storage setup for Node 26 compatibility.
 
-```sh
-npm run test:unit
-```
+## Demo behavior
 
-### Lint with [ESLint](https://eslint.org/)
+- Fictional examples initialize once under localStorage key `jalurix.fr01.v1`. A valid empty dataset stays empty.
+- Customers support individual/business profiles, contacts, and an optional saved address.
+- Requests support several cargo items, quantity and optional measurements per item, offline intake channels, preferred WIB schedules, handling instructions, and independent pickup/delivery locations.
+- `Use saved address` explicitly copies only that location's address. Later customer edits do not change request addresses.
+- New requests remain Draft and use the visibly labelled Demo staff identity. Dates persist in UTC and display as Asia/Jakarta (WIB).
+- Adding a customer from a new request temporarily saves the unfinished request in sessionStorage key `jalurix.request-editor.v1`. Creation or cancellation returns to that draft; successful request creation clears it.
+- Navigation warns before discarding unsaved changes. Save failures keep the form open. Unreadable stored data is preserved and shows an error with retry; the app never silently resets it.
 
-```sh
-npm run lint
-```
+Data is local to this browser and origin, without encryption, accounts, shared storage, or server backups. Use fictional data only. Multiple tabs editing concurrently are unsupported. Clearing site data removes local records; export/backup UI is not included.
+
+## Frontend boundaries
+
+`src/features/customers` and `src/features/requests` contain types, validation, repository contracts, Pinia stores, and views. Views call stores; stores use asynchronous repositories. `src/data` implements these contracts with a versioned browser storage envelope. Future HTTP adapters can replace the browser implementation without changing the forms; no Go API contract is assumed.
+
+Authentication, API authorization, audit guarantees, quotations, shipment operations, payment records, and backend architecture are deferred. Browser validation is usability support, not a replacement for future server validation.
+
+Design and implementation plan: `docs/superpowers/specs/2026-10-22-fr01-frontend-design.md` and `docs/superpowers/plans/2026-10-22-fr01-frontend.md`.

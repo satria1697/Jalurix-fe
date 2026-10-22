@@ -8,14 +8,46 @@ const router = createRouter({
       component: () => import('../components/layout/AppShell.vue'),
       children: [
         { path: '', redirect: '/requests' },
-        { path: 'customers', name: 'customers', component: () => import('../features/customers/views/CustomerList.vue') },
-        { path: 'customers/new', name: 'customer-new', component: () => import('../features/customers/views/CustomerForm.vue') },
-        { path: 'customers/:id/edit', name: 'customer-edit', component: () => import('../features/customers/views/CustomerForm.vue') },
-        { path: 'customers/:id', name: 'customer-detail', component: () => import('../features/customers/views/CustomerDetail.vue') },
-        { path: 'requests', name: 'requests', component: () => import('../features/requests/views/RequestList.vue') },
-        { path: 'requests/new', name: 'request-new', component: () => import('../features/requests/views/RequestForm.vue') },
-        { path: 'requests/:id/edit', name: 'request-edit', component: () => import('../features/requests/views/RequestForm.vue') },
-        { path: 'requests/:id', name: 'request-detail', component: () => import('../features/requests/views/RequestDetail.vue') },
+        {
+          path: 'customers',
+          name: 'customers',
+          component: () => import('../features/customers/views/CustomerList.vue')
+        },
+        {
+          path: 'customers/new',
+          name: 'customer-new',
+          component: () => import('../features/customers/views/CustomerForm.vue')
+        },
+        {
+          path: 'customers/:id/edit',
+          name: 'customer-edit',
+          component: () => import('../features/customers/views/CustomerForm.vue')
+        },
+        {
+          path: 'customers/:id',
+          name: 'customer-detail',
+          component: () => import('../features/customers/views/CustomerDetail.vue')
+        },
+        {
+          path: 'requests',
+          name: 'requests',
+          component: () => import('../features/requests/views/RequestList.vue')
+        },
+        {
+          path: 'requests/new',
+          name: 'request-new',
+          component: () => import('../features/requests/views/RequestForm.vue')
+        },
+        {
+          path: 'requests/:id/edit',
+          name: 'request-edit',
+          component: () => import('../features/requests/views/RequestForm.vue')
+        },
+        {
+          path: 'requests/:id',
+          name: 'request-detail',
+          component: () => import('../features/requests/views/RequestDetail.vue')
+        },
         { path: ':pathMatch(.*)*', component: () => import('../views/NotFound.vue') }
       ]
     },
