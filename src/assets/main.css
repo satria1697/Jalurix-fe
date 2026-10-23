@@ -471,6 +471,7 @@ table {
   font-size: 12px;
 }
 th {
+  position: relative;
   background: #f3f3e9;
   color: #68705b;
   font-size: 9px;
@@ -891,6 +892,7 @@ tbody tr:hover {
   }
   td,
   th {
+  position: relative;
     padding-left: 17px;
     padding-right: 17px;
   }
