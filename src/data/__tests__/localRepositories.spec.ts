@@ -1,3 +1,4 @@
+import { seed } from '../seed'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createLocalRepositories, STORAGE_KEY } from '../localRepositories'
 import { emptyRequest } from '../../features/requests/validation'
@@ -11,6 +12,19 @@ const input = {
 }
 beforeEach(() => localStorage.clear())
 describe('local repositories', () => {
+  it('reads existing version-1 demo records that exceed new API resource bounds', async () => {
+    const db = seed()
+    db.customers[0].name = '森'.repeat(201)
+    db.requests[0].cargo[0].weight = 0.1234
+    db.requests[0].cargo[0].quantity = 1000001
+    const bytes = JSON.stringify(db)
+    localStorage.setItem(STORAGE_KEY, bytes)
+    const r = createLocalRepositories(localStorage)
+    expect((await r.customers.list())[0].name).toHaveLength(201)
+    expect((await r.requests.list())[0].cargo[0].weight).toBe(0.1234)
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(bytes)
+  })
+
   it('persists detached records, independent addresses and immutable creator', async () => {
     const r = createLocalRepositories(localStorage)
     const c = await r.customers.create(input)

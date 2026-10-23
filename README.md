@@ -56,3 +56,5 @@ The same-origin Vite `/api` proxy connects the UI to PostgreSQL through the API.
 Unfinished API drafts use `jalurix.request-editor.api.v1` in sessionStorage, independently of local-demo drafts. Existing browser demo records remain untouched when switching modes. Detail/edit routes fetch records directly by ID. For this small-team phase, list adapters traverse server pagination and load the full collection for lists/dropdowns; page-aware UI is deferred. A load has an overall 10-second timeout, and any failed or inconsistent page fails the load instead of showing incomplete results.
 
 Do not point API mode at a public unauthenticated service. Built assets require a same-origin `/api` proxy supplied by their hosting environment; Vite's development proxy is not a production server. Backend API/migration/test instructions are in `../jalurix-api/README.md`; the OpenAPI contract is `../jalurix-api/docs/openapi.yaml`.
+
+Existing version-1 local demo records retain their prior read validation, including older measurements with more decimal places. The stricter API resource bounds apply to new writes and API responses; reading old demo data never silently rewrites it.

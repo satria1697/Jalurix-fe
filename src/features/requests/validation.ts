@@ -14,24 +14,28 @@ export function emptyRequest(): RequestInput {
     delivery: emptyLocation()
   }
 }
-export function validateRequest(input: RequestInput): FieldErrors {
+export function validateRequest(input: RequestInput, enforceLimits = true): FieldErrors {
   const e: FieldErrors = {}
   if (!input.customerId) e.customerId = 'Choose a customer.'
   if (!['phone', 'whatsapp', 'other'].includes(input.channel))
     e.channel = 'Choose an intake channel.'
-  if (!input.cargo.length || input.cargo.length > 100)
+  if (!input.cargo.length || (enforceLimits && input.cargo.length > 100))
     e.cargo = 'Add between 1 and 100 cargo items.'
   input.cargo.forEach((item, i) => {
     if (!item.description.trim()) e[`cargo.${i}.description`] = 'Describe the cargo.'
-    if (!Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 1000000)
+    if (
+      !Number.isInteger(item.quantity) ||
+      item.quantity <= 0 ||
+      (enforceLimits && item.quantity > 1000000)
+    )
       e[`cargo.${i}.quantity`] = 'Use a whole number between 1 and 1,000,000.'
     for (const key of ['length', 'width', 'height', 'weight'] as const)
       if (
         item[key] !== undefined &&
         (!Number.isFinite(item[key]) ||
           item[key]! <= 0 ||
-          item[key]! > 1000000 ||
-          item[key] !== Math.round(item[key]! * 1000) / 1000)
+          (enforceLimits &&
+            (item[key]! > 1000000 || item[key] !== Math.round(item[key]! * 1000) / 1000)))
       )
         e[`cargo.${i}.${key}`] =
           'Use a positive number up to 1,000,000 with at most 3 decimal places.'
@@ -65,6 +69,7 @@ export function validateRequest(input: RequestInput): FieldErrors {
     Date.parse(input.deliveryAt) < Date.parse(input.pickupAt)
   )
     e.deliveryAt = 'Delivery cannot be before pickup.'
+  if (!enforceLimits) return e
   const text = (key: string, value: string, max: number) => {
     if ([...value.trim()].length > max) e[key] = `Use at most ${max} characters.`
   }

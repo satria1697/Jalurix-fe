@@ -2,11 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { createRouter, createMemoryHistory, RouterView } from 'vue-router'
+import { useRequestStore } from '../store'
 import RequestForm from '../views/RequestForm.vue'
 import RequestList from '../views/RequestList.vue'
 import CustomerForm from '../../customers/views/CustomerForm.vue'
 const blank = { template: '<div>Detail page</div>' }
-async function page(path = '/requests/new') {
+async function page(path = '/requests/new', previousRequestError = '') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -19,9 +20,11 @@ async function page(path = '/requests/new') {
     ]
   })
   await router.push(path)
+  const pinia = createPinia()
+  useRequestStore(pinia).error = previousRequestError
   const w = mount(
     { components: { RouterView }, template: '<RouterView :key="$route.fullPath" />' },
-    { global: { plugins: [createPinia(), router] } }
+    { global: { plugins: [pinia, router] } }
   )
   await flushPromises()
   return { w, router }
@@ -175,6 +178,12 @@ describe('request views', () => {
     expect(router.currentRoute.value.path).toBe('/requests')
     expect(sessionStorage.getItem('jalurix.request-editor.v1')).toBeNull()
     confirm.mockRestore()
+    w.unmount()
+  })
+  it('opens a new request after an unrelated request failure', async () => {
+    const { w } = await page('/requests/new', 'Previous API request failed')
+    expect(w.find('#cargo-0-description').exists()).toBe(true)
+    expect(w.text()).not.toContain('Previous API request failed')
     w.unmount()
   })
   it('searches route and cargo text', async () => {

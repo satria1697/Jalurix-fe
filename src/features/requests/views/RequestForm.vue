@@ -41,7 +41,7 @@ const guard = useDirtyForm(
 )
 async function load() {
   await Promise.all([customers.load(), id ? requests.get(id) : Promise.resolve()])
-  loadError.value = customers.error || requests.error
+  loadError.value = customers.error || (id ? requests.error : '')
   if (loadError.value) {
     ready.value = true
     return

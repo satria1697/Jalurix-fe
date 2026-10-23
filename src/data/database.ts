@@ -14,14 +14,17 @@ const strings = (x: Record<string, unknown>, keys: string[]) =>
   keys.every((k) => typeof x[k] === 'string')
 const timestamp = (x: unknown) =>
   typeof x === 'string' && /Z$/.test(x) && Number.isFinite(Date.parse(x))
-export function isCustomer(x: unknown): x is Customer {
+export function isCustomer(
+  x: unknown,
+  validation: 'current' | 'legacy' = 'current'
+): x is Customer {
   return (
     object(x) &&
     strings(x, ['id', 'type', 'name', 'phone', 'email', 'address']) &&
     !!x.id &&
     timestamp(x.createdAt) &&
     timestamp(x.updatedAt) &&
-    !Object.keys(validateCustomer(x as unknown as Customer)).length
+    !Object.keys(validateCustomer(x as unknown as Customer, validation === 'current')).length
   )
 }
 function location(x: unknown): boolean {
@@ -31,7 +34,10 @@ function location(x: unknown): boolean {
     ['latitude', 'longitude'].every((k) => x[k] === undefined || typeof x[k] === 'number')
   )
 }
-export function isTransportRequest(x: unknown): x is TransportRequest {
+export function isTransportRequest(
+  x: unknown,
+  validation: 'current' | 'legacy' = 'current'
+): x is TransportRequest {
   if (
     !object(x) ||
     !strings(x, ['id', 'reference', 'customerId', 'channel', 'intakeNotes', 'handling']) ||
@@ -64,7 +70,8 @@ export function isTransportRequest(x: unknown): x is TransportRequest {
   )
     return false
   if (['pickupAt', 'deliveryAt'].some((k) => x[k] !== undefined && !timestamp(x[k]))) return false
-  return !Object.keys(validateRequest(x as unknown as TransportRequest)).length
+  return !Object.keys(validateRequest(x as unknown as TransportRequest, validation === 'current'))
+    .length
 }
 export function parseDatabase(raw: string): Database {
   const x: unknown = JSON.parse(raw)
@@ -74,9 +81,9 @@ export function parseDatabase(raw: string): Database {
     !Number.isSafeInteger(x.nextRequestNumber) ||
     Number(x.nextRequestNumber) < 1 ||
     !Array.isArray(x.customers) ||
-    !x.customers.every(isCustomer) ||
+    !x.customers.every((c) => isCustomer(c, 'legacy')) ||
     !Array.isArray(x.requests) ||
-    !x.requests.every(isTransportRequest)
+    !x.requests.every((r) => isTransportRequest(r, 'legacy'))
   )
     throw new Error('Invalid database')
   const ids = new Set(x.customers.map((c) => c.id))
