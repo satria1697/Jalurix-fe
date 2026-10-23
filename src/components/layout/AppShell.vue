@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { dataSource } from '../../data/repositories'
+const apiMode = dataSource() === 'api'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import AppIcon from './AppIcon.vue'
 const open = ref(false),
@@ -37,7 +39,10 @@ const open = ref(false),
       </div>
       <div class="staff">
         <span class="avatar">DS</span>
-        <div><strong>Demo staff</strong><small>Local workspace</small></div>
+        <div>
+          <strong>Demo staff</strong
+          ><small>{{ apiMode ? 'Development API' : 'Local workspace' }}</small>
+        </div>
         <span class="online-dot"></span>
       </div>
     </aside>
@@ -65,7 +70,13 @@ const open = ref(false),
       </header>
       <main id="main-content"><RouterView :key="route.fullPath" /></main>
       <footer class="app-footer">
-        <span><span class="demo-dot"></span>Local demo — data saved in this browser</span
+        <span
+          ><span class="demo-dot"></span
+          >{{
+            apiMode
+              ? 'Local development API — records saved in PostgreSQL'
+              : 'Local demo — data saved in this browser'
+          }}</span
         ><span>Jalurix · A clearer way forward</span>
       </footer>
     </div>

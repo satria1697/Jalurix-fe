@@ -38,24 +38,33 @@ function update(key: keyof Location, event: Event) {
         :id="`${prefix}-address`"
         :value="modelValue.address"
         placeholder="Street, building, city, and postal code"
+        maxlength="2000"
         :aria-invalid="a.invalid"
         :aria-describedby="a.describedBy"
         @input="update('address', $event)"
       />
     </FormField>
-    <FormField :id="`${prefix}-contactName`" label="Site contact name (optional)"
+    <FormField
+      :id="`${prefix}-contactName`"
+      label="Site contact name (optional)"
+      :error="errors[`${prefix}.contactName`]"
       ><input
         :id="`${prefix}-contactName`"
         :value="modelValue.contactName"
         placeholder="Who should we ask for?"
+        maxlength="200"
         @input="update('contactName', $event)"
     /></FormField>
-    <FormField :id="`${prefix}-contactPhone`" label="Site contact phone (optional)"
+    <FormField
+      :id="`${prefix}-contactPhone`"
+      label="Site contact phone (optional)"
+      :error="errors[`${prefix}.contactPhone`]"
       ><input
         :id="`${prefix}-contactPhone`"
         type="tel"
         :value="modelValue.contactPhone"
         placeholder="+62…"
+        maxlength="50"
         @input="update('contactPhone', $event)"
     /></FormField>
     <FormField
@@ -96,11 +105,13 @@ function update(key: keyof Location, event: Event) {
       :id="`${prefix}-instructions`"
       class="span-full"
       label="Access instructions (optional)"
+      :error="errors[`${prefix}.instructions`]"
     >
       <textarea
         :id="`${prefix}-instructions`"
         :value="modelValue.instructions"
         placeholder="Gate access, parking, loading area, or landmarks…"
+        maxlength="5000"
         @input="update('instructions', $event)"
       />
     </FormField>

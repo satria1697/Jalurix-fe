@@ -12,7 +12,8 @@ const route = useRoute(),
 const request = computed(() => requests.items.find((r) => r.id === route.params.id)),
   customer = computed(() => customers.items.find((c) => c.id === request.value?.customerId))
 async function load() {
-  await Promise.all([requests.load(), customers.load()])
+  const record = await requests.get(String(route.params.id))
+  if (record) await customers.get(record.customerId)
   ready.value = true
 }
 onMounted(load)

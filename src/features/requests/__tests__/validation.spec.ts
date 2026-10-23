@@ -59,3 +59,12 @@ describe('request validation', () => {
     expect(validateRequest({ ...valid(), pickupAt: 'bad' }).pickupAt).toBeTruthy()
   })
 })
+
+it('enforces cargo limits and exact thousandth precision', () => {
+  const x = emptyRequest()
+  x.cargo = [{ description: 'Car', quantity: 1000001, weight: 1.1234 }]
+  expect(validateRequest(x)['cargo.0.quantity']).toBeTruthy()
+  expect(validateRequest(x)['cargo.0.weight']).toBeTruthy()
+  x.cargo = Array.from({ length: 101 }, () => ({ description: 'Car', quantity: 1 }))
+  expect(validateRequest(x).cargo).toBeTruthy()
+})

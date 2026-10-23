@@ -40,3 +40,19 @@ Data is local to this browser and origin, without encryption, accounts, shared s
 Authentication, API authorization, audit guarantees, quotations, shipment operations, payment records, and backend architecture are deferred. Browser validation is usability support, not a replacement for future server validation.
 
 Design and implementation plan: `docs/superpowers/specs/2026-10-22-fr01-frontend-design.md` and `docs/superpowers/plans/2026-10-22-fr01-frontend.md`.
+
+## PostgreSQL-backed development mode
+
+The backend now implements FR-01. In `../jalurix-api`, configure DATABASE_URL, run `make migrate`, and start with `FR01_DEV_MODE=true GIN_MODE=debug make run`. This is explicitly local development only; production authentication/RBAC is not implemented. The API binds to 127.0.0.1 in this mode and cannot be enabled with release mode.
+
+Start this frontend with:
+
+```sh
+VITE_DATA_SOURCE=api VITE_API_PROXY_TARGET=http://127.0.0.1:8080 npm run dev
+```
+
+The same-origin Vite `/api` proxy connects the UI to PostgreSQL through the API. `.env.example` documents both options. `VITE_DATA_SOURCE` defaults to `local`, preserving the original standalone demo. API mode changes the footer to “Local development API — records saved in PostgreSQL”. It never seeds, imports, or silently falls back to localStorage. API validation errors appear in the forms and failed saves retain entered values.
+
+Unfinished API drafts use `jalurix.request-editor.api.v1` in sessionStorage, independently of local-demo drafts. Existing browser demo records remain untouched when switching modes. Detail/edit routes fetch records directly by ID. For this small-team phase, list adapters traverse server pagination and load the full collection for lists/dropdowns; page-aware UI is deferred. A load has an overall 10-second timeout, and any failed or inconsistent page fails the load instead of showing incomplete results.
+
+Do not point API mode at a public unauthenticated service. Built assets require a same-origin `/api` proxy supplied by their hosting environment; Vite's development proxy is not a production server. Backend API/migration/test instructions are in `../jalurix-api/README.md`; the OpenAPI contract is `../jalurix-api/docs/openapi.yaml`.

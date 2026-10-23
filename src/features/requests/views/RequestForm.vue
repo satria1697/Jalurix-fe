@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useCustomerStore } from '../../customers/store'
 import { useRequestStore } from '../store'
 import { emptyRequest, validateRequest } from '../validation'
 import type { FieldErrors } from '../../customers/types'
 import { toUtc, toWib } from '../../../shared/time'
+import { serverFields } from '../../../data/apiError'
 import { useDirtyForm } from '../../../shared/useDirtyForm'
 import { readDraft, saveDraft, clearDraft } from '../draft'
 import FormField from '../../../components/forms/FormField.vue'
@@ -39,7 +40,7 @@ const guard = useDirtyForm(
   }
 )
 async function load() {
-  await Promise.all([customers.load(), requests.load()])
+  await Promise.all([customers.load(), id ? requests.get(id) : Promise.resolve()])
   loadError.value = customers.error || requests.error
   if (loadError.value) {
     ready.value = true
@@ -123,6 +124,9 @@ async function save() {
     await router.push({ name: 'request-detail', params: { id: r.id } })
   } catch (e) {
     failure.value = (e as Error).message
+    errors.value = { ...errors.value, ...serverFields(e) }
+    await nextTick()
+    document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     guard.resume()
   } finally {
     busy.value = false
@@ -191,11 +195,17 @@ async function save() {
             <option value="other">Other offline channel</option>
           </select></FormField
         >
-        <FormField id="intakeNotes" label="Intake notes (optional)" class="span-full">
+        <FormField
+          id="intakeNotes"
+          label="Intake notes (optional)"
+          :error="errors.intakeNotes"
+          class="span-full"
+        >
           <textarea
             id="intakeNotes"
             v-model="model.intakeNotes"
             placeholder="Context from the conversation, references, or the originating channel…"
+            maxlength="5000"
           />
         </FormField>
       </div>
@@ -243,11 +253,17 @@ async function save() {
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
         /></FormField>
-        <FormField id="handling" label="Special handling instructions (optional)" class="span-full">
+        <FormField
+          id="handling"
+          label="Special handling instructions (optional)"
+          :error="errors.handling"
+          class="span-full"
+        >
           <textarea
             id="handling"
             v-model="model.handling"
             placeholder="Cargo condition, protective packing, loading considerations…"
+            maxlength="5000"
           />
         </FormField>
       </div>

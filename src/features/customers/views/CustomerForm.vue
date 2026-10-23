@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useCustomerStore } from '../store'
 import { validateCustomer } from '../validation'
 import type { CustomerInput, FieldErrors } from '../types'
 import FormField from '../../../components/forms/FormField.vue'
 import AppIcon from '../../../components/layout/AppIcon.vue'
+import { serverFields } from '../../../data/apiError'
 import { useDirtyForm } from '../../../shared/useDirtyForm'
 const route = useRoute(),
   router = useRouter(),
@@ -28,7 +29,8 @@ const errors = ref<FieldErrors>({}),
 let initial = JSON.stringify(model)
 const guard = useDirtyForm(() => ready.value && JSON.stringify(model) !== initial)
 async function load() {
-  await store.load()
+  if (id) await store.get(id)
+  else await store.load()
   loadError.value = store.error
   if (!loadError.value) {
     if (id) {
@@ -57,6 +59,9 @@ async function save() {
     )
   } catch (e) {
     failure.value = e instanceof Error ? e.message : 'Could not save customer.'
+    errors.value = { ...errors.value, ...serverFields(e) }
+    await nextTick()
+    document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     guard.resume()
   } finally {
     busy.value = false
@@ -118,6 +123,7 @@ async function save() {
             v-model="model.name"
             autocomplete="name"
             placeholder="Enter customer name"
+            maxlength="200"
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
         /></FormField>
@@ -128,6 +134,7 @@ async function save() {
             type="tel"
             autocomplete="tel"
             placeholder="+62 812 3456 7890"
+            maxlength="50"
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
         /></FormField>
@@ -138,6 +145,7 @@ async function save() {
             type="email"
             autocomplete="email"
             placeholder="name@example.com"
+            maxlength="254"
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
         /></FormField>
@@ -146,6 +154,7 @@ async function save() {
           v-slot="a"
           class="span-full"
           label="Saved address (optional)"
+          :error="errors.address"
           hint="A reference address only. Each transport request has its own pickup and delivery locations."
         >
           <textarea
@@ -153,6 +162,7 @@ async function save() {
             v-model="model.address"
             autocomplete="street-address"
             placeholder="Street, building, city, and postal code"
+            maxlength="2000"
             :aria-describedby="a.describedBy"
           />
         </FormField>

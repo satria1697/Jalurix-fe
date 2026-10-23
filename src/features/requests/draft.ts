@@ -1,5 +1,9 @@
+import { dataSource } from '../../data/repositories'
 import type { RequestInput } from './types'
 export const DRAFT_KEY = 'jalurix.request-editor.v1'
+function draftKey() {
+  return dataSource() === 'api' ? 'jalurix.request-editor.api.v1' : DRAFT_KEY
+}
 export interface RequestDraft {
   version: 1
   input: RequestInput
@@ -8,7 +12,7 @@ export interface RequestDraft {
 }
 export function saveDraft(draft: RequestDraft) {
   try {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+    sessionStorage.setItem(draftKey(), JSON.stringify(draft))
   } catch {
     throw Error(
       'Your draft could not be saved. Keep this page open and try again after enabling browser storage.'
@@ -17,7 +21,7 @@ export function saveDraft(draft: RequestDraft) {
 }
 export function readDraft(): RequestDraft | undefined {
   try {
-    const raw = sessionStorage.getItem(DRAFT_KEY)
+    const raw = sessionStorage.getItem(draftKey())
     if (!raw) return
     const x = JSON.parse(raw)
     const strings = (v: any, keys: string[]) => v && keys.every((k) => typeof v[k] === 'string')
@@ -57,7 +61,7 @@ export function readDraft(): RequestDraft | undefined {
 }
 export function clearDraft() {
   try {
-    sessionStorage.removeItem(DRAFT_KEY)
+    sessionStorage.removeItem(draftKey())
   } catch {
     /* A completed request remains saved even if draft cleanup is blocked. */
   }

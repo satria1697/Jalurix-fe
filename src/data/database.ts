@@ -14,7 +14,7 @@ const strings = (x: Record<string, unknown>, keys: string[]) =>
   keys.every((k) => typeof x[k] === 'string')
 const timestamp = (x: unknown) =>
   typeof x === 'string' && /Z$/.test(x) && Number.isFinite(Date.parse(x))
-function customer(x: unknown): x is Customer {
+export function isCustomer(x: unknown): x is Customer {
   return (
     object(x) &&
     strings(x, ['id', 'type', 'name', 'phone', 'email', 'address']) &&
@@ -31,7 +31,7 @@ function location(x: unknown): boolean {
     ['latitude', 'longitude'].every((k) => x[k] === undefined || typeof x[k] === 'number')
   )
 }
-function request(x: unknown): x is TransportRequest {
+export function isTransportRequest(x: unknown): x is TransportRequest {
   if (
     !object(x) ||
     !strings(x, ['id', 'reference', 'customerId', 'channel', 'intakeNotes', 'handling']) ||
@@ -74,9 +74,9 @@ export function parseDatabase(raw: string): Database {
     !Number.isSafeInteger(x.nextRequestNumber) ||
     Number(x.nextRequestNumber) < 1 ||
     !Array.isArray(x.customers) ||
-    !x.customers.every(customer) ||
+    !x.customers.every(isCustomer) ||
     !Array.isArray(x.requests) ||
-    !x.requests.every(request)
+    !x.requests.every(isTransportRequest)
   )
     throw new Error('Invalid database')
   const ids = new Set(x.customers.map((c) => c.id))

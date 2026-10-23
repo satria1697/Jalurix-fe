@@ -6,5 +6,8 @@ export function validateCustomer(input: CustomerInput): FieldErrors {
   if (!input.phone.trim()) errors.phone = 'Enter a phone number.'
   if (input.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim()))
     errors.email = 'Enter a valid email address.'
+  for (const [key, max] of Object.entries({ name: 200, phone: 50, email: 254, address: 2000 }))
+    if ([...input[key as keyof CustomerInput].trim()].length > max)
+      errors[key] = `Use at most ${max} characters.`
   return errors
 }

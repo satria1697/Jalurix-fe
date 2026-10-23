@@ -19,14 +19,22 @@ export function validateRequest(input: RequestInput): FieldErrors {
   if (!input.customerId) e.customerId = 'Choose a customer.'
   if (!['phone', 'whatsapp', 'other'].includes(input.channel))
     e.channel = 'Choose an intake channel.'
-  if (!input.cargo.length) e.cargo = 'Add at least one cargo item.'
+  if (!input.cargo.length || input.cargo.length > 100)
+    e.cargo = 'Add between 1 and 100 cargo items.'
   input.cargo.forEach((item, i) => {
     if (!item.description.trim()) e[`cargo.${i}.description`] = 'Describe the cargo.'
-    if (!Number.isInteger(item.quantity) || item.quantity <= 0)
-      e[`cargo.${i}.quantity`] = 'Use a positive whole number.'
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 1000000)
+      e[`cargo.${i}.quantity`] = 'Use a whole number between 1 and 1,000,000.'
     for (const key of ['length', 'width', 'height', 'weight'] as const)
-      if (item[key] !== undefined && (!Number.isFinite(item[key]) || item[key]! <= 0))
-        e[`cargo.${i}.${key}`] = 'Use a positive number.'
+      if (
+        item[key] !== undefined &&
+        (!Number.isFinite(item[key]) ||
+          item[key]! <= 0 ||
+          item[key]! > 1000000 ||
+          item[key] !== Math.round(item[key]! * 1000) / 1000)
+      )
+        e[`cargo.${i}.${key}`] =
+          'Use a positive number up to 1,000,000 with at most 3 decimal places.'
   })
   for (const key of ['pickup', 'delivery'] as const) {
     const loc = input[key]
@@ -57,5 +65,18 @@ export function validateRequest(input: RequestInput): FieldErrors {
     Date.parse(input.deliveryAt) < Date.parse(input.pickupAt)
   )
     e.deliveryAt = 'Delivery cannot be before pickup.'
+  const text = (key: string, value: string, max: number) => {
+    if ([...value.trim()].length > max) e[key] = `Use at most ${max} characters.`
+  }
+  text('intakeNotes', input.intakeNotes, 5000)
+  text('handling', input.handling, 5000)
+  input.cargo.forEach((c, i) => text(`cargo.${i}.description`, c.description, 5000))
+  for (const key of ['pickup', 'delivery'] as const) {
+    const l = input[key]
+    text(`${key}.address`, l.address, 2000)
+    text(`${key}.contactName`, l.contactName, 200)
+    text(`${key}.contactPhone`, l.contactPhone, 50)
+    text(`${key}.instructions`, l.instructions, 5000)
+  }
   return e
 }

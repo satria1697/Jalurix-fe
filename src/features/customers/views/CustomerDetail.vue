@@ -12,7 +12,7 @@ const route = useRoute(),
 const customer = computed(() => customers.items.find((c) => c.id === route.params.id)),
   linked = computed(() => requests.items.filter((r) => r.customerId === route.params.id))
 async function load() {
-  await Promise.all([customers.load(), requests.load()])
+  await Promise.all([customers.get(String(route.params.id)), requests.load()])
   ready.value = true
 }
 onMounted(load)

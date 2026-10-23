@@ -55,6 +55,7 @@ const measures = [
             :id="`cargo-${i}-description`"
             :value="c.description"
             placeholder="e.g. Honda CB150R, 2024"
+            maxlength="5000"
             :aria-invalid="a.invalid"
             :aria-describedby="a.describedBy"
             @input="update(i, 'description', $event)" /></FormField
@@ -67,6 +68,7 @@ const measures = [
             :id="`cargo-${i}-quantity`"
             type="number"
             min="1"
+            max="1000000"
             step="1"
             :value="c.quantity"
             :aria-invalid="a.invalid"
@@ -75,7 +77,7 @@ const measures = [
         /></FormField>
       </div>
       <p class="field-hint" style="margin-top: 18px">
-        Optional measurements · dimensions and weight per item
+        Optional measurements · per item · max 1,000,000 · up to 3 decimals
       </p>
       <div class="measurement-grid">
         <FormField
@@ -88,8 +90,9 @@ const measures = [
           ><input
             :id="`cargo-${i}-${m.key}`"
             type="number"
-            min="0"
-            step="any"
+            min="0.001"
+            max="1000000"
+            step="0.001"
             :value="c[m.key]"
             placeholder="—"
             :aria-invalid="a.invalid"
@@ -101,6 +104,7 @@ const measures = [
     <button
       type="button"
       class="button secondary"
+      :disabled="modelValue.length >= 100"
       data-add-cargo
       @click="emit('update:modelValue', [...modelValue, { description: '', quantity: 1 }])"
     >
