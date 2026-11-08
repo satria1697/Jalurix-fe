@@ -2,6 +2,8 @@ import type { Customer } from '../features/customers/types'
 import type { TransportRequest } from '../features/requests/types'
 import { validateCustomer } from '../features/customers/validation'
 import { validateRequest } from '../features/requests/validation'
+import type { Quotation } from '../features/quotations/types'
+import { validateQuotation } from '../features/quotations/validation'
 export interface Database {
   version: 1
   nextRequestNumber: number
@@ -72,6 +74,21 @@ export function isTransportRequest(
   if (['pickupAt', 'deliveryAt'].some((k) => x[k] !== undefined && !timestamp(x[k]))) return false
   return !Object.keys(validateRequest(x as unknown as TransportRequest, validation === 'current'))
     .length
+}
+export function isQuotation(x: unknown): x is Quotation {
+  if (!object(x) || !strings(x, ['id','reference','requestId','status','currency','validUntil','paymentTerm','paymentDetails','notes']) ||
+    !/^QUO-\d{6,}$/.test(String(x.reference)) || !['draft','approved','rejected'].includes(String(x.status)) ||
+    !['summary','items'].includes(String(x.pricingMode)) || !Array.isArray(x.items) || !Array.isArray(x.decisions) ||
+    !timestamp(x.createdAt) || !timestamp(x.updatedAt) || !object(x.snapshot)) return false
+  const s = x.snapshot
+  if (!strings(s, ['requestReference','customerId','customerName','handling']) || !Array.isArray(s.cargo) ||
+    !location(s.pickup) || !location(s.delivery) ||
+    !s.cargo.every((c) => object(c) && typeof c.description === 'string' && Number.isSafeInteger(c.quantity)) ||
+    !x.decisions.every((d) => object(d) && ['approved','rejected'].includes(String(d.outcome)) && timestamp(d.at) &&
+      object(d.actor) && d.actor.id === 'demo-staff' && d.actor.name === 'Demo staff' && typeof d.evidence === 'string')) return false
+  if (x.summaryAmountMinor !== undefined && !Number.isSafeInteger(x.summaryAmountMinor)) return false
+  if (!x.items.every((i) => object(i) && typeof i.description === 'string' && Number.isSafeInteger(i.quantity) && Number.isSafeInteger(i.unitPriceMinor))) return false
+  try { return Object.keys(validateQuotation(x as unknown as Quotation)).length === 0 } catch { return false }
 }
 export function parseDatabase(raw: string): Database {
   const x: unknown = JSON.parse(raw)

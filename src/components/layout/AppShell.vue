@@ -30,6 +30,12 @@ const open = ref(false),
           @click="open = false"
           ><AppIcon name="customers" />Customers</RouterLink
         >
+        <RouterLink
+          to="/quotations"
+          :class="{ active: route.path.startsWith('/quotations') || route.path.includes('/quotations') }"
+          @click="open = false"
+          ><AppIcon name="requests" />Quotations</RouterLink
+        >
       </nav>
       <div class="sidebar-garden">
         <AppIcon name="leaf" :size="38" />
@@ -63,10 +69,10 @@ const open = ref(false),
             <AppIcon name="menu" /></button
           ><span>Workspace</span><span class="crumb-divider">/</span
           ><strong>{{
-            route.path.startsWith('/customers') ? 'Customers' : 'Transport requests'
+            route.path.includes('/quotations') ? 'Quotations' : route.path.startsWith('/customers') ? 'Customers' : 'Transport requests'
           }}</strong>
         </div>
-        <span class="topbar-tag"><span class="online-dot"></span>FR-01 · Intake workspace</span>
+        <span class="topbar-tag"><span class="online-dot"></span>FR-01 & FR-02 · Workspace</span>
       </header>
       <main id="main-content"><RouterView :key="route.fullPath" /></main>
       <footer class="app-footer">

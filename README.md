@@ -1,6 +1,6 @@
 # Jalurix frontend
 
-FR-01 customer and transport request intake, built with Vue 3, TypeScript, Pinia, and Tailwind. The Forest Chocolate theme uses forest green, chocolate, cream, and moss.
+FR-01 customer and transport request intake plus local-demo FR-02 quotations, built with Vue 3, TypeScript, Pinia, and Tailwind. The Forest Chocolate theme uses forest green, chocolate, cream, and moss.
 
 ## Run
 
@@ -26,6 +26,7 @@ The `build` convenience script also runs checking and bundling. The build script
 - Fictional examples initialize once under localStorage key `jalurix.fr01.v1`. A valid empty dataset stays empty.
 - Customers support individual/business profiles, contacts, and an optional saved address.
 - Requests support several cargo items, quantity and optional measurements per item, offline intake channels, preferred WIB schedules, handling instructions, and independent pickup/delivery locations.
+- Quotations support summarized or itemized prices, currency-aware totals, validity, payment terms, notes, customer decisions, evidence references, and copying earlier quotes into new drafts. Approved terms and request details are locked as a snapshot.
 - `Use saved address` explicitly copies only that location's address. Later customer edits do not change request addresses.
 - New requests remain Draft and use the visibly labelled Demo staff identity. Dates persist in UTC and display as Asia/Jakarta (WIB).
 - Adding a customer from a new request temporarily saves the unfinished request in sessionStorage key `jalurix.request-editor.v1`. Creation, cancellation, or browser Back returns to that draft; successful request creation or confirmed discard clears it.
@@ -35,15 +36,15 @@ Data is local to this browser and origin, without encryption, accounts, shared s
 
 ## Frontend boundaries
 
-`src/features/customers` and `src/features/requests` contain types, validation, repository contracts, Pinia stores, and views. Views call stores; stores use asynchronous repositories. `src/data` implements these contracts with a versioned browser storage envelope. Future HTTP adapters can replace the browser implementation without changing the forms; no Go API contract is assumed.
+`src/features/customers`, `src/features/requests`, and `src/features/quotations` contain types, validation, repository contracts, Pinia stores, and views. Views call stores; stores use asynchronous repositories. `src/data` provides browser and HTTP implementations without changing the forms.
 
-Authentication, API authorization, audit guarantees, quotations, shipment operations, payment records, and backend architecture are deferred. Browser validation is usability support, not a replacement for future server validation.
+FR-02 quotations support summary/itemized prices, decision history, immutable approved terms, and copy-to-draft. Local mode stores them under `jalurix.fr02.v1`; API mode persists them through the Go API and PostgreSQL. The API derives the request snapshot and records the development staff actor and decision timestamp. Shipment conversion and production authentication/authorization remain deferred. Browser validation is usability support; the server validates all writes.
 
 Design and implementation plan: `docs/superpowers/specs/2026-10-22-fr01-frontend-design.md` and `docs/superpowers/plans/2026-10-22-fr01-frontend.md`.
 
 ## PostgreSQL-backed development mode
 
-The backend now implements FR-01. In `../jalurix-api`, configure DATABASE_URL, run `make migrate`, and start with `FR01_DEV_MODE=true GIN_MODE=debug make run`. This is explicitly local development only; production authentication/RBAC is not implemented. The API binds to 127.0.0.1 in this mode and cannot be enabled with release mode.
+The backend implements FR-01 and FR-02. In `../jalurix-api`, configure DATABASE_URL, run `make migrate`, and start with `FR01_DEV_MODE=true GIN_MODE=debug make run`. This is explicitly local development only; production authentication/RBAC is not implemented. The API binds to 127.0.0.1 in this mode and cannot be enabled with release mode.
 
 Start this frontend with:
 

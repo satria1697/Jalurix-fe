@@ -5,15 +5,20 @@ import { useRequestStore } from '../store'
 import { useCustomerStore } from '../../customers/store'
 import { displayTime } from '../../../shared/time'
 import AppIcon from '../../../components/layout/AppIcon.vue'
+import { dataSource } from '../../../data/repositories'
+import { useQuotationStore } from '../../quotations/store'
 const route = useRoute(),
   requests = useRequestStore(),
   customers = useCustomerStore(),
+  quotations = useQuotationStore(),
   ready = ref(false)
 const request = computed(() => requests.items.find((r) => r.id === route.params.id)),
-  customer = computed(() => customers.items.find((c) => c.id === request.value?.customerId))
+  customer = computed(() => customers.items.find((c) => c.id === request.value?.customerId)),
+  quotationCount = computed(() => quotations.items.filter((q) => q.requestId === request.value?.id).length)
 async function load() {
   const record = await requests.get(String(route.params.id))
   if (record) await customers.get(record.customerId)
+  if (record && dataSource() === 'local') await quotations.load(record.id)
   ready.value = true
 }
 onMounted(load)
@@ -36,7 +41,12 @@ onMounted(load)
       </div>
       <div class="header-actions">
         <span class="badge">Draft</span
-        ><RouterLink :to="`/requests/${request.id}/edit`" class="button secondary"
+        ><RouterLink :to="`/requests/${request.id}/quotations`" class="button secondary"
+          ><AppIcon name="requests" :size="15" />Quotations<span class="count">{{ quotationCount }}</span></RouterLink
+        ><RouterLink :to="`/requests/${request.id}/quotations/new`" class="button"
+          ><AppIcon name="plus" :size="15" />New quotation</RouterLink
+        >
+        <RouterLink :to="`/requests/${request.id}/edit`" class="button secondary"
           ><AppIcon name="edit" :size="15" />Edit request</RouterLink
         >
       </div>

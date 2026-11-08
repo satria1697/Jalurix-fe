@@ -85,6 +85,33 @@ describe('HTTP repositories', () => {
     expect(body).not.toHaveProperty('id')
     expect(body.cargo).toHaveLength(1)
   })
+  it('uses quotation API endpoints and sends only client-owned fields', async () => {
+    const quote = {
+      id: 'q1', reference: 'QUO-000001', requestId: 'r1', status: 'draft',
+      pricingMode: 'summary', summaryAmountMinor: 100, items: [], currency: 'IDR',
+      validUntil: '2026-12-31', paymentTerm: 'prepayment', paymentDetails: '', notes: '',
+      snapshot: { requestReference: 'REQ-000001', customerId: 'c1', customerName: 'Aruna', cargo: [],
+        pickup: { type: 'residential', address: 'Origin', contactName: '', contactPhone: '', instructions: '' },
+        delivery: { type: 'warehouse', address: 'Destination', contactName: '', contactPhone: '', instructions: '' }, handling: '' },
+      decisions: [], createdAt: '2026-10-30T00:00:00Z', updatedAt: '2026-10-30T00:00:00Z'
+    } as const
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(response({ data: [quote], pagination: { page: 1, pageSize: 100, total: 1 } }))
+      .mockResolvedValueOnce(response({ data: quote }, 201))
+      .mockResolvedValueOnce(response({ data: quote }, 201))
+      .mockResolvedValueOnce(response({ data: quote }))
+    const repos = createHttpRepositories('/api/v1', fetcher)
+    expect((await repos.quotations.list('r1'))[0].id).toBe('q1')
+    expect(fetcher.mock.calls[0][0]).toContain('requestId=r1')
+    const input = { pricingMode: 'summary' as const, summaryAmountMinor: 100, items: [], currency: 'IDR', validUntil: '2026-12-31', paymentTerm: 'prepayment' as const, paymentDetails: '', notes: '' }
+    await repos.quotations.create('r1', input, { requestReference: 'client', customerId: 'client', customerName: 'client', cargo: [], pickup: quote.snapshot.pickup, delivery: quote.snapshot.delivery, handling: '' })
+    expect(JSON.parse(fetcher.mock.calls[1][1].body)).toMatchObject({ requestId: 'r1', ...input })
+    expect(JSON.parse(fetcher.mock.calls[1][1].body)).not.toHaveProperty('snapshot')
+    await repos.quotations.copy('q1')
+    expect(fetcher.mock.calls[2][0]).toBe('/api/v1/quotations/q1/copy')
+    await repos.quotations.decide('q1', 'approved', 'email')
+    expect(JSON.parse(fetcher.mock.calls[3][1].body)).toEqual({ outcome: 'approved', evidence: 'email' })
+  })
   it('maps missing records to undefined, rejects malformed success', async () => {
     const f = vi
       .fn()

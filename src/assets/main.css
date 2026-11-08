@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config '../../tailwind.config.js';
 :root {
   font-family:
     Inter,
@@ -637,6 +636,11 @@ tbody tr:hover {
   border-color: #e9cfc2;
   color: #8a4131;
 }
+.notice.success {
+  background: #edf2e7;
+  border-color: #d3dec8;
+  color: #355742;
+}
 .notice a {
   text-decoration: underline;
 }
@@ -726,6 +730,100 @@ tbody tr:hover {
   gap: 12px;
   border-top: 1px solid var(--border);
   padding: 22px 0;
+}
+.quote-line {
+  align-items: end;
+  border: 1px solid #e2e4d7;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 14px 0;
+  background: #f9f9f0;
+}
+.quote-line .button {
+  align-self: end;
+}
+.quote-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 18px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+.quote-total strong,
+.quote-grand-total {
+  color: var(--chocolate) !important;
+  font-size: 20px !important;
+  font-weight: 650;
+}
+.quote-price-lines {
+  margin-top: 19px;
+  border-top: 1px solid var(--border);
+}
+.quote-price-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 0;
+  border-bottom: 1px solid #eeeee3;
+  color: #56634a;
+  font-size: 11px;
+}
+.quote-note {
+  margin-top: 19px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.quote-decision-panel {
+  margin-top: 20px;
+  display: grid;
+  gap: 13px;
+}
+.quote-decision-panel .page-description {
+  margin-top: -14px;
+}
+.quote-decision-panel textarea {
+  border: 1px solid #dcdfd1;
+  background: #fffefa;
+  padding: 11px 12px;
+  border-radius: 5px;
+  color: #3f4c36;
+  width: 100%;
+  min-height: 78px;
+  resize: vertical;
+}
+.field-label {
+  font-size: 11px;
+  font-weight: 550;
+  color: #56634a;
+}
+.quote-decisions article {
+  padding: 13px 0;
+  border-top: 1px solid #eeeee3;
+  color: #56634a;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.quote-decisions article p {
+  margin-top: 7px;
+}
+.badge.quote-approved {
+  color: #345d43;
+  background: #e8efdf;
+}
+.badge.quote-rejected {
+  color: #8a4131;
+  background: #f7e8e1;
+}
+.badge.quote-draft {
+  color: #78654c;
+  background: #f0ecdf;
 }
 .back-link {
   display: inline-flex;
@@ -824,6 +922,7 @@ tbody tr:hover {
 .page-header .header-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .loading-state {
   padding: 55px;
@@ -997,6 +1096,12 @@ tbody tr:hover {
   }
   .page-header > .button {
     width: 100%;
+  }
+  .page-header .header-actions {
+    width: 100%;
+  }
+  .page-header .header-actions > .button {
+    flex: 1;
   }
   .stats {
     grid-template-columns: repeat(3, 1fr);

@@ -2,7 +2,8 @@ import type { CustomerInput } from '../features/customers/types'
 import type { RequestInput } from '../features/requests/types'
 import type { CustomerRepository } from '../features/customers/repository'
 import type { RequestRepository } from '../features/requests/repository'
-import { isCustomer, isTransportRequest } from './database'
+import type { Quotation, QuotationRepository, QuoteInput } from '../features/quotations/types'
+import { isCustomer, isTransportRequest, isQuotation } from './database'
 import { ApiError } from './apiError'
 type Guard<T> = (x: unknown) => x is T
 function customerBody(x: CustomerInput) {
@@ -31,7 +32,7 @@ function requestBody(x: RequestInput) {
 export function createHttpRepositories(
   baseURL: string,
   fetcher: typeof fetch = (...args) => fetch(...args)
-): { customers: CustomerRepository; requests: RequestRepository } {
+): { customers: CustomerRepository; requests: RequestRepository; quotations: QuotationRepository } {
   const base = baseURL.replace(/\/$/, '')
   async function bounded<T>(action: (signal: AbortSignal) => Promise<T>): Promise<T> {
     const controller = new AbortController()
@@ -178,8 +179,54 @@ export function createHttpRepositories(
         )
     }
   }
+  const validateQuote = (x: unknown): Quotation => {
+    if (!isQuotation(x)) throw new ApiError('The API returned an invalid record.', 0, 'invalid_response')
+    return x
+  }
+  const quotationBody = (input: QuoteInput) => ({
+    pricingMode: input.pricingMode,
+    ...(input.pricingMode === 'summary' ? { summaryAmountMinor: input.summaryAmountMinor } : {}),
+    items: input.pricingMode === 'items' ? input.items : [],
+    currency: input.currency,
+    validUntil: input.validUntil,
+    paymentTerm: input.paymentTerm,
+    paymentDetails: input.paymentDetails,
+    notes: input.notes
+  })
+  const quotations: QuotationRepository = {
+    list: (requestId) => bounded(async (signal) => {
+      const out: Quotation[] = [], ids = new Set<string>()
+      let total: number | undefined
+      for (let page = 1; ; page++) {
+        const query = new URLSearchParams({ page: String(page), pageSize: '100' })
+        if (requestId) query.set('requestId', requestId)
+        const envelope = await send(`/quotations?${query}`, signal)
+        const p = envelope.pagination as { page?: unknown; pageSize?: unknown; total?: unknown } | undefined
+        if (!Array.isArray(envelope.data) || !p || p.page !== page || p.pageSize !== 100 || !Number.isSafeInteger(p.total) || Number(p.total) < 0 || envelope.data.length > 100)
+          throw new ApiError('The API returned invalid pagination.', 0, 'invalid_response')
+        if (total !== undefined && total !== p.total) throw new ApiError('Records changed while loading. Please retry.', 0, 'collection_changed')
+        total = Number(p.total)
+        for (const raw of envelope.data) {
+          const item = validateQuote(raw)
+          if (ids.has(item.id)) throw new ApiError('Records changed while loading. Please retry.', 0, 'collection_changed')
+          ids.add(item.id); out.push(item)
+        }
+        if (out.length === total) return out
+        if (out.length > total || !envelope.data.length || page >= 10000) throw new ApiError('The collection could not be fully loaded. Please retry.', 0, 'invalid_response')
+      }
+    }),
+    get: (id) => bounded(async (signal) => {
+      try { return validateQuote((await send(`/quotations/${encodeURIComponent(id)}`, signal)).data) }
+      catch (e) { if (e instanceof ApiError && e.status === 404) return undefined; throw e }
+    }),
+    create: (requestId, input, _snapshot) => bounded(async (signal) => validateQuote((await send('/quotations', signal, 'POST', { requestId, ...quotationBody(input) })).data)),
+    update: (id, input) => bounded(async (signal) => validateQuote((await send(`/quotations/${encodeURIComponent(id)}`, signal, 'PUT', quotationBody(input))).data)),
+    copy: (id) => bounded(async (signal) => validateQuote((await send(`/quotations/${encodeURIComponent(id)}/copy`, signal, 'POST')).data)),
+    decide: (id, outcome, evidence) => bounded(async (signal) => validateQuote((await send(`/quotations/${encodeURIComponent(id)}/decision`, signal, 'POST', { outcome, evidence })).data))
+  }
   return {
     customers: repository('/customers', isCustomer, customerBody),
-    requests: repository('/transport-requests', isTransportRequest, requestBody)
+    requests: repository('/transport-requests', isTransportRequest, requestBody),
+    quotations
   }
 }

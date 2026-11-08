@@ -6,6 +6,7 @@ import { validateCustomer } from '../features/customers/validation'
 import { validateRequest } from '../features/requests/validation'
 import { parseDatabase, type Database } from './database'
 import { seed } from './seed'
+import { createLocalQuotationRepository } from './localQuotations'
 export const STORAGE_KEY = 'jalurix.fr01.v1'
 function trim<T>(value: T): T {
   return JSON.parse(JSON.stringify(value, (_k, v) => (typeof v === 'string' ? v.trim() : v)))
@@ -14,6 +15,7 @@ const copy = <T>(x: T): T => JSON.parse(JSON.stringify(x))
 export function createLocalRepositories(storage: Storage): {
   customers: CustomerRepository
   requests: RequestRepository
+  quotations: ReturnType<typeof createLocalQuotationRepository>
 } {
   function write(db: Database) {
     try {
@@ -111,6 +113,7 @@ export function createLocalRepositories(storage: Storage): {
     return copy(record)
   }
   return {
+    quotations: createLocalQuotationRepository(storage),
     customers: {
       async list() {
         return copy(read().customers)

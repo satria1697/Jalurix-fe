@@ -48,6 +48,31 @@ const router = createRouter({
           name: 'request-detail',
           component: () => import('../features/requests/views/RequestDetail.vue')
         },
+        {
+          path: 'quotations',
+          name: 'quotations',
+          component: () => import('../features/quotations/views/QuotationList.vue')
+        },
+        {
+          path: 'requests/:requestId/quotations',
+          name: 'quotation-list',
+          component: () => import('../features/quotations/views/QuotationList.vue')
+        },
+        {
+          path: 'requests/:requestId/quotations/new',
+          name: 'quotation-new',
+          component: () => import('../features/quotations/views/QuotationForm.vue')
+        },
+        {
+          path: 'requests/:requestId/quotations/:quoteId/edit',
+          name: 'quotation-edit',
+          component: () => import('../features/quotations/views/QuotationForm.vue')
+        },
+        {
+          path: 'requests/:requestId/quotations/:quoteId',
+          name: 'quotation-detail',
+          component: () => import('../features/quotations/views/QuotationDetail.vue')
+        },
         { path: ':pathMatch(.*)*', component: () => import('../views/NotFound.vue') }
       ]
     },
